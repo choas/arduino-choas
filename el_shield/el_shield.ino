@@ -62,7 +62,7 @@ long unsigned int startRunTime;
 long unsigned int endRunTime;
 
 int startMeters = 1;
-int endMeters = 1;
+int endMeters = 4;
 
 
 /////////////////////////////
@@ -127,14 +127,19 @@ void loop(){
   }
 
   if (running) {
-    if (millis() > startRunTime) {
+    if (millis() >= startRunTime && millis() <= endRunTime) {
       digitalWrite(runningPin, HIGH);
       Serial.print("R");
-
-      if (millis() > endRunTime) {
+    } else if (millis() > endRunTime) {  // && (!activePirs[0] || !activePirs[1])) {
+     
+      // reset running flag if at least one PIR isn't active, otherwise a re-run starts
+      if (!activePirs[0] || !activePirs[1]) {
         running = false;
+      } else {
+        Serial.print("r");
       }
     }
+    
   }
   else {
     digitalWrite(runningPin, LOW);
@@ -149,11 +154,13 @@ void loop(){
 void pirHigh(int index) {
   if(digitalRead(pirPins[index]) == HIGH){
     digitalWrite(ledPins[index], HIGH);   //the led visualizes the sensors output pin state
+     
     if(lockLows[index]){
       //makes sure we wait for a transition to LOW before any further output is made:
       lockLows[index] = false;
       Serial.println("---");
-      Serial.print("motion detected at ");
+      Serial.print(index);
+      Serial.print(":motion detected at ");
       Serial.print(millis()/1000);
       Serial.println(" sec");
       //delay(50);
@@ -183,7 +190,8 @@ void pirLow(int index) {
 
       activePirs[index] = false;
       lockLows[index] = true;
-      Serial.print("motion ended at ");      //output
+      Serial.print(index);
+      Serial.print(":motion ended at ");      //output
       Serial.print((millis() - pause)/1000);
       Serial.println(" sec");
       //delay(50);
