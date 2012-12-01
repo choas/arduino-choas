@@ -32,7 +32,7 @@
 /////////////////////////////
 //VARS
 //the time we give the sensor to calibrate (10-60 secs according to the datasheet)
-int calibrationTime = 30;
+int calibrationTime = 10;
 
 //the time when the sensor outputs a low impulse
 long unsigned int lowIns[2];
