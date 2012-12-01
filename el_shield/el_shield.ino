@@ -5,11 +5,15 @@
  *
  * Switches a LED according to the state of the sensors output pin.
  * Determines the beginning and end of continuous motion sequences.
+ * Handle two sensors.
+ * Two active sensors will start a running session.
  *
  * @author: Kristian Gohlke / krigoo (_) gmail (_) com / http://krx.at
+ *          Lars Gregori / lars (_) gregori (_) gmail (_) com / http://crystal-lab.blogger.com
  * @date:   3. September 2006
+ *          1. December 2012
  *
- * kr1 (cleft) 2006
+ * kr1 (cleft) 2006, 2012
  * released under a creative commons "Attribution-NonCommercial-ShareAlike 2.0" license
  * http://creativecommons.org/licenses/by-nc-sa/2.0/de/
  *
@@ -116,20 +120,16 @@ void loop(){
 
     Serial.print(" ... start in ");
     Serial.print(startRunTime);
-
-
     Serial.println("ms ");
-
-
   }
   else {
 
   }
 
   if (running) {
-
     if (millis() > startRunTime) {
       digitalWrite(runningPin, HIGH);
+      Serial.print("R");
 
       if (millis() > endRunTime) {
         running = false;
