@@ -9,7 +9,7 @@
  * Two active sensors will start a running session.
  *
  * @author: Kristian Gohlke / krigoo (_) gmail (_) com / http://krx.at
- *          Lars Gregori / lars (_) gregori (_) gmail (_) com / http://crystal-lab.blogger.com
+ *          Lars Gregori / lars (_) gregori (_) gmail (_) com / http://crystal-lab.blogspot.com
  * @date:   3. September 2006
  *          1. December 2012
  *
