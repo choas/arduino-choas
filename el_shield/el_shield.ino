@@ -128,12 +128,9 @@ void loop(){
     Serial.print(" => ");
     Serial.print(millisecondsPerMeter);
 
-    Serial.print(" ... start in ");
+    Serial.print(" ... start at ");
     Serial.print(startRunTime);
     Serial.println("ms ");
-  }
-  else {
-
   }
 
   if (running) {
