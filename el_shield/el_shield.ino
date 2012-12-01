@@ -117,7 +117,7 @@ void loop(){
     millisecondsPerMeter = detectedTimes[0] - detectedTimes[1];
     if (abs(millisecondsPerMeter) > 5000) {
       Serial.println("~~~~");
-      // snake detected
+      // snail detected
       int direction = 1;
       if (millisecondsPerMeter < 0) {
         direction = -1;
@@ -231,7 +231,6 @@ void pirLow(int index) {
       Serial.print(":motion ended at ");      //output
       Serial.print((millis() - pause)/1000);
       Serial.println(" sec");
-      //delay(50);
     }
   }
 }
