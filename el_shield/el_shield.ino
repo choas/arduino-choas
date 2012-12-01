@@ -85,6 +85,7 @@ void setup(){
   Serial.print("calibrating sensor ");
   for(int i = 0; i < calibrationTime; i++){
     Serial.print(".");
+    randomSeed(analogRead(0));
     delay(1000);
   }
 
@@ -106,8 +107,9 @@ void loop(){
   if(activePirs[0] && activePirs[1] && !running) {
     millisecondsPerMeter = detectedTimes[0] - detectedTimes[1];
     if (millisecondsPerMeter > 5000) {
+      Serial.println("~~~~");
       // snake detected
-      millisecondsPerMeter = 5000;
+      millisecondsPerMeter = random(1000, 3000);
     }
     startRunTime = abs(millisecondsPerMeter) * startMeters + millis();
     endRunTime = abs(millisecondsPerMeter) * (startMeters + endMeters) + millis();
