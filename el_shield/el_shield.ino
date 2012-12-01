@@ -146,13 +146,16 @@ void loop(){
     if (millis() >= startRunTime && millis() <= endRunTime) {
       digitalWrite(runningPin, HIGH);
       
-      int elPin = (millis() - startRunTime) / millisecondsPerMeter;
+      int elPin = (millis() - startRunTime) / abs(millisecondsPerMeter);
+      if (millisecondsPerMeter < 0) {
+        elPin = 3 - elPin;
+      }
       
-      for (int i = elPinStart; i <= elPinEnd; i++) {
-        if (i == elPin) {
-          digitalWrite(i, HIGH);
+      for (int p = elPinStart; p <= elPinEnd; p++) {
+        if (p == elPinStart + elPin) {
+          digitalWrite(p, HIGH);
         } else {
-          digitalWrite(i, LOW);
+          digitalWrite(p, LOW);
         }
       }
       
