@@ -106,10 +106,14 @@ void loop(){
 
   if(activePirs[0] && activePirs[1] && !running) {
     millisecondsPerMeter = detectedTimes[0] - detectedTimes[1];
-    if (millisecondsPerMeter > 5000) {
+    if (abs(millisecondsPerMeter) > 5000) {
       Serial.println("~~~~");
       // snake detected
-      millisecondsPerMeter = random(1000, 3000);
+      int direction = 1;
+      if (millisecondsPerMeter < 0) {
+        direction = -1;
+      }
+      millisecondsPerMeter = direction * random(1000, 3000);
     }
     startRunTime = abs(millisecondsPerMeter) * startMeters + millis();
     endRunTime = abs(millisecondsPerMeter) * (startMeters + endMeters) + millis();
