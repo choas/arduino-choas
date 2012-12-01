@@ -105,6 +105,10 @@ void loop(){
 
   if(activePirs[0] && activePirs[1] && !running) {
     millisecondsPerMeter = detectedTimes[0] - detectedTimes[1];
+    if (millisecondsPerMeter > 5000) {
+      // snake detected
+      millisecondsPerMeter = 5000;
+    }
     startRunTime = abs(millisecondsPerMeter) * startMeters + millis();
     endRunTime = abs(millisecondsPerMeter) * (startMeters + endMeters) + millis();
     running = true;
@@ -135,8 +139,9 @@ void loop(){
       // reset running flag if at least one PIR isn't active, otherwise a re-run starts
       if (!activePirs[0] || !activePirs[1]) {
         running = false;
+        Serial.println("r");
       } else {
-        Serial.print("r");
+        Serial.print("w");
       }
     }
     
