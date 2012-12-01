@@ -159,10 +159,10 @@ void loop(){
         }
       }
       
-      Serial.print("R");
+      Serial.print("R"); // run
       Serial.print(elPin);
     } 
-    else if (millis() > endRunTime) {  // && (!activePirs[0] || !activePirs[1])) {
+    else if (millis() > endRunTime) {
       for (int i = elPinStart; i <= elPinEnd; i++) {
         digitalWrite(i, HIGH);
       }
@@ -170,10 +170,10 @@ void loop(){
       // reset running flag if at least one PIR isn't active, otherwise a re-run starts
       if (!activePirs[0] || !activePirs[1]) {
         running = false;
-        Serial.println("r");
+        Serial.println("r"); // not running
       } 
       else {
-        Serial.print("w");
+        Serial.print("w"); // wait
       }
     }
 
