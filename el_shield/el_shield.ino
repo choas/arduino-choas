@@ -37,15 +37,19 @@ long unsigned int lowIns[2];
 //before we assume all motion has stopped
 long unsigned int pause = 5000;  
 
-boolean lockLows[2] = {true, true};
+boolean lockLows[2] = {
+  true, true};
 boolean takeLowTimes[2];  
 
-int pirPins[] = {8, 9};    //the digital pin connected to the PIR sensor's output
+int pirPins[] = {
+  8, 9};    //the digital pin connected to the PIR sensor's output
 int runningPin = 10;
-int ledPins[] = {11, 12};
+int ledPins[] = {
+  11, 12};
 
 
-boolean activePirs[] = {false, false};
+boolean activePirs[] = {
+  false, false};
 long unsigned int detectedTimes[2];
 boolean running = false;
 long int millisecondsPerMeter;
@@ -70,118 +74,121 @@ void setup(){
   digitalWrite(ledPins[0], HIGH);
   pinMode(ledPins[1], OUTPUT);
   digitalWrite(ledPins[1], HIGH);
-  
+
   pinMode(runningPin, OUTPUT);
 
   //give the sensor some time to calibrate
   Serial.print("calibrating sensor ");
-    for(int i = 0; i < calibrationTime; i++){
-      Serial.print(".");
-      delay(1000);
-      }
-      
+  for(int i = 0; i < calibrationTime; i++){
+    Serial.print(".");
+    delay(1000);
+  }
+
   digitalWrite(ledPins[0], LOW);
   digitalWrite(ledPins[1], LOW);
-      
-    Serial.println(" done");
-    Serial.println("SENSOR ACTIVE");
-    delay(50);
-  }
+
+  Serial.println(" done");
+  Serial.println("SENSOR ACTIVE");
+  delay(50);
+}
 
 ////////////////////////////
 //LOOP
 void loop(){
 
-pirHigh(0);
-pirHigh(1);
+  pirHigh(0);
+  pirHigh(1);
 
-if(activePirs[0] && activePirs[1] && !running) {
-  millisecondsPerMeter = detectedTimes[0] - detectedTimes[1];
-  startRunTime = abs(millisecondsPerMeter) * startMeters + millis();
-  endRunTime = abs(millisecondsPerMeter) * (startMeters + endMeters) + millis();
-  running = true;
-  
-  Serial.println("####");
-         Serial.print("delay 0:");
-         
-         Serial.print(detectedTimes[0]);
-         Serial.print(" 1:");
-         Serial.print(detectedTimes[1]);
-         Serial.print(" => ");
-         Serial.print(millisecondsPerMeter);
-         
-         Serial.print(" ... start in ");
-         Serial.print(startRunTime);
-         
-         
-         Serial.println("ms ");
-         
-  
-} else {
-  
-}
+  if(activePirs[0] && activePirs[1] && !running) {
+    millisecondsPerMeter = detectedTimes[0] - detectedTimes[1];
+    startRunTime = abs(millisecondsPerMeter) * startMeters + millis();
+    endRunTime = abs(millisecondsPerMeter) * (startMeters + endMeters) + millis();
+    running = true;
 
-if (running) {
-  
-  if (millis() > startRunTime) {
-    digitalWrite(runningPin, HIGH);
-    
-    if (millis() > endRunTime) {
-      running = false;
-    }
+    Serial.println("####");
+    Serial.print("delay 0:");
+
+    Serial.print(detectedTimes[0]);
+    Serial.print(" 1:");
+    Serial.print(detectedTimes[1]);
+    Serial.print(" => ");
+    Serial.print(millisecondsPerMeter);
+
+    Serial.print(" ... start in ");
+    Serial.print(startRunTime);
+
+
+    Serial.println("ms ");
+
+
+  } 
+  else {
+
   }
-} else {
-  digitalWrite(runningPin, LOW);
-}
 
-delay(50);
+  if (running) {
 
-pirLow(0);
-pirLow(1);
+    if (millis() > startRunTime) {
+      digitalWrite(runningPin, HIGH);
+
+      if (millis() > endRunTime) {
+        running = false;
+      }
+    }
+  } 
+  else {
+    digitalWrite(runningPin, LOW);
+  }
+
+  delay(50);
+
+  pirLow(0);
+  pirLow(1);
 }
 
 void pirHigh(int index) {
-     if(digitalRead(pirPins[index]) == HIGH){
-       digitalWrite(ledPins[index], HIGH);   //the led visualizes the sensors output pin state
-       if(lockLows[index]){  
-         //makes sure we wait for a transition to LOW before any further output is made:
-         lockLows[index] = false;            
-         Serial.println("---");
-         Serial.print("motion detected at ");
-         Serial.print(millis()/1000);
-         Serial.println(" sec"); 
-         //delay(50);
-         }         
-         takeLowTimes[index] = true;
-         if (!activePirs[index]) {
-           detectedTimes[index] = millis();
-         }
-         activePirs[index] = true;
-       }
+  if(digitalRead(pirPins[index]) == HIGH){
+    digitalWrite(ledPins[index], HIGH);   //the led visualizes the sensors output pin state
+    if(lockLows[index]){  
+      //makes sure we wait for a transition to LOW before any further output is made:
+      lockLows[index] = false;            
+      Serial.println("---");
+      Serial.print("motion detected at ");
+      Serial.print(millis()/1000);
+      Serial.println(" sec"); 
+      //delay(50);
+    }         
+    takeLowTimes[index] = true;
+    if (!activePirs[index]) {
+      detectedTimes[index] = millis();
+    }
+    activePirs[index] = true;
+  }
 }
 
 void pirLow(int index) {
 
-     if(digitalRead(pirPins[index]) == LOW){       
-       digitalWrite(ledPins[index], LOW);  //the led visualizes the sensors output pin state
-       
-       if(takeLowTimes[index]){
-        lowIns[index] = millis();          //save the time of the transition from high to LOW
-        takeLowTimes[index] = false;       //make sure this is only done at the start of a LOW phase
-        }
-       //if the sensor is low for more than the given pause, 
-       //we assume that no more motion is going to happen
-       if(!lockLows[index] && millis() - lowIns[index] > pause){  
-           //makes sure this block of code is only executed again after 
-           //a new motion sequence has been detected
+  if(digitalRead(pirPins[index]) == LOW){       
+    digitalWrite(ledPins[index], LOW);  //the led visualizes the sensors output pin state
 
-           activePirs[index] = false;
-           lockLows[index] = true;                        
-           Serial.print("motion ended at ");      //output
-           Serial.print((millis() - pause)/1000);
-           Serial.println(" sec");
-           //delay(50);
-           }
-       }
+    if(takeLowTimes[index]){
+      lowIns[index] = millis();          //save the time of the transition from high to LOW
+      takeLowTimes[index] = false;       //make sure this is only done at the start of a LOW phase
+    }
+    //if the sensor is low for more than the given pause, 
+    //we assume that no more motion is going to happen
+    if(!lockLows[index] && millis() - lowIns[index] > pause){  
+      //makes sure this block of code is only executed again after 
+      //a new motion sequence has been detected
+
+      activePirs[index] = false;
+      lockLows[index] = true;                        
+      Serial.print("motion ended at ");      //output
+      Serial.print((millis() - pause)/1000);
+      Serial.println(" sec");
+      //delay(50);
+    }
   }
+}
+
 
