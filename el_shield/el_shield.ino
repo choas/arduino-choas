@@ -64,6 +64,10 @@ long unsigned int endRunTime;
 int startMeters = 1;
 int endMeters = 4;
 
+// EL Shield
+int elPinStart = 4;
+int elPinEnd = 7;
+
 
 /////////////////////////////
 //SETUP
@@ -80,6 +84,11 @@ void setup(){
   digitalWrite(ledPins[1], HIGH);
 
   pinMode(runningPin, OUTPUT);
+  
+  for (int i = elPinStart; i <= elPinEnd; i++) {
+    pinMode(i, OUTPUT);
+    digitalWrite(i, HIGH);
+  }
 
   //give the sensor some time to calibrate
   Serial.print("calibrating sensor ");
@@ -91,7 +100,7 @@ void setup(){
 
   digitalWrite(ledPins[0], LOW);
   digitalWrite(ledPins[1], LOW);
-
+  
   Serial.println(" done");
   Serial.println("SENSOR ACTIVE");
   delay(50);
@@ -136,18 +145,35 @@ void loop(){
   if (running) {
     if (millis() >= startRunTime && millis() <= endRunTime) {
       digitalWrite(runningPin, HIGH);
+      
+      int elPin = (millis() - startRunTime) / millisecondsPerMeter;
+      
+      for (int i = elPinStart; i <= elPinEnd; i++) {
+        if (i == elPin) {
+          digitalWrite(i, HIGH);
+        } else {
+          digitalWrite(i, LOW);
+        }
+      }
+      
       Serial.print("R");
-    } else if (millis() > endRunTime) {  // && (!activePirs[0] || !activePirs[1])) {
-     
+      Serial.print(elPin);
+    } 
+    else if (millis() > endRunTime) {  // && (!activePirs[0] || !activePirs[1])) {
+      for (int i = elPinStart; i <= elPinEnd; i++) {
+        digitalWrite(i, HIGH);
+      }
+
       // reset running flag if at least one PIR isn't active, otherwise a re-run starts
       if (!activePirs[0] || !activePirs[1]) {
         running = false;
         Serial.println("r");
-      } else {
+      } 
+      else {
         Serial.print("w");
       }
     }
-    
+
   }
   else {
     digitalWrite(runningPin, LOW);
@@ -162,7 +188,7 @@ void loop(){
 void pirHigh(int index) {
   if(digitalRead(pirPins[index]) == HIGH){
     digitalWrite(ledPins[index], HIGH);   //the led visualizes the sensors output pin state
-     
+
     if(lockLows[index]){
       //makes sure we wait for a transition to LOW before any further output is made:
       lockLows[index] = false;
@@ -206,5 +232,6 @@ void pirLow(int index) {
     }
   }
 }
+
 
 
