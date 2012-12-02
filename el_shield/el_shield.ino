@@ -87,7 +87,7 @@ void setup(){
   
   for (int i = elPinStart; i <= elPinEnd; i++) {
     pinMode(i, OUTPUT);
-    digitalWrite(i, HIGH);
+    digitalWrite(i, LOW);
   }
 
   //give the sensor some time to calibrate
@@ -100,6 +100,11 @@ void setup(){
 
   digitalWrite(ledPins[0], LOW);
   digitalWrite(ledPins[1], LOW);
+
+  for (int i = elPinStart; i <= elPinEnd; i++) {
+    digitalWrite(i, HIGH);
+  }
+
   
   Serial.println(" done");
   Serial.println("SENSOR ACTIVE");
