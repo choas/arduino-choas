@@ -76,7 +76,7 @@ void setup(void) {
 
 void loop(void) {
   loopTimer();  
-  //loopTemperature();
+  loopTemperature();
 }  
 
 void loopTimer() {
@@ -186,19 +186,41 @@ String timerToString(int timer) {
   return txt;
 }
 
-void loopTemperature() {
-  byte i;
-  byte present = 0;
-  byte type_s;
-  byte data[12];
+long timeTemp;
+boolean waitTemp = false;
+
   byte addr[8];
-  float celsius, fahrenheit;
+
+void loopTemperature() {
+  if (!waitTemp) {
+    loopTemperature1(addr);
+    waitTemp = true;
+    timeTemp = millis();
+  } else {
+    if (millis() - timeTemp > 1000) {
+      //delay(1000);
+      loopTemperature2(addr);
+      waitTemp = false;
+    }
+  }
+}
+
+
+//byte* 
+void 
+loopTemperature1(byte* addr) {
+  byte i;
+//  byte present = 0;
+  byte type_s;
+//  byte data[12];
+//  byte addr[8];
+//  float celsius, fahrenheit;
   
   if ( !ds.search(addr)) {
     Serial.println("No more addresses.");
     Serial.println();
     ds.reset_search();
-    delay(250);
+//    delay(250);
     return;
   }
   
@@ -236,9 +258,22 @@ void loopTemperature() {
   ds.reset();
   ds.select(addr);
   ds.write(0x44,1);         // start conversion, with parasite power on at the end
+
+//  return addr;
+}
+
+
   
-  delay(1000);     // maybe 750ms is enough, maybe not
+//  delay(1000);     // maybe 750ms is enough, maybe not
   // we might do a ds.depower() here, but the reset will take care of it.
+
+void loopTemperature2(byte* addr) {
+  byte i;
+  byte present = 0;
+  byte type_s;
+  byte data[12];
+  //byte addr[8];
+  float celsius, fahrenheit;
   
   present = ds.reset();
   ds.select(addr);    
@@ -303,17 +338,10 @@ void drawTemp(double temp, int tempId) {
   tempString.toCharArray(tempTxt, tempString.length() + 1);
 
   int p = tempId;
-  Tft.fillRectangle(15, 70 + (p*50) - 1, 150, 23, GRAY1);
+  Tft.fillRectangle(15, 70 + (p*50) - 1, 150, 23, GRAY2);
   Tft.drawRectangle(15, 70 + (p*50) - 2, 150, 25, WHITE);
 
   Tft.drawString(tempTxt, 20, 70 + (p*50), 3, WHITE);
-
-/*
-  Tft.setDisplayDirect(UP2DOWN);
-  Tft.fillRectangle(220 - 50 - (p*50), 20, 49, 270, 0x111111 * p);
-  Tft.drawString(ssid,220 - (p*50),20,6,BLUE);
-  Tft.setDisplayDirect(LEFT2RIGHT);
-*/
 }
 
 
@@ -346,10 +374,5 @@ String tempToString(double temp) {
   }
   t += Fract;  
 
-
-  String t1 = t; //"     ";
-  //t1 += raw;
-
-
- return t; 
+  return t; 
 }
