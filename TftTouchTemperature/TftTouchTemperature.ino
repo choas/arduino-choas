@@ -45,7 +45,8 @@
 
 
 
-
+// OneWire notice:
+//
 // OneWire DS18S20, DS18B20, DS1822 Temperature Example
 //
 // http://www.pjrc.com/teensy/td_libs_OneWire.html
@@ -56,15 +57,10 @@
 
 OneWire  ds(A4);  // on pin A4
 
-
-
 // For better pressure precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 // The 2.8" TFT Touch shield has 300 ohms across the X plate
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-
-
-
 
 
 void setup(void) {
@@ -76,7 +72,13 @@ void setup(void) {
 
 void loop(void) {
   
-    // a point object holds x y and z coordinates
+
+  loopTouch();  
+  //loopTemperature();
+}  
+
+void loopTouch() {
+  // a point object holds x y and z coordinates
   Point p = ts.getPoint();
 
   if (p.z > ts.pressureThreshhold) {
@@ -95,11 +97,8 @@ void loop(void) {
      Serial.print("X = "); Serial.print(p.x);
      Serial.print("\tY = "); Serial.print(p.y);
      Serial.print("\tPressure = "); Serial.println(p.z);
-  }
-
-  
-  loopTemperature();
-}  
+  }  
+}
 
 void loopTemperature() {
   byte i;
