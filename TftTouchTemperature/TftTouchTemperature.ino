@@ -1,7 +1,8 @@
 #include <OneWire.h>
 
+// TFT Touch Shield
 #include <stdint.h>
-//#include <TouchScreen.h> 
+#include <TouchScreen.h> 
 #include <TFT.h>
 
 
@@ -12,20 +13,17 @@
 // The DallasTemperature library can do all this work for you!
 // http://milesburton.com/Dallas_Temperature_Control_Library
 
-OneWire  ds(A4);  // on pin 10
 
-
+OneWire  ds(A4);  // on pin A4
 
 void setup(void) {
   Serial.begin(9600);
   
-  Tft.init();  //init TFT library
-
+  Tft.init();
   Tft.drawString("inside:",0,150,2,WHITE);
-
   Tft.drawString("outside:",0,200,2,WHITE);
-  
 }
+
 
 void loop(void) {
   byte i;
@@ -117,9 +115,47 @@ void loop(void) {
   fahrenheit = celsius * 1.8 + 32.0;
   Serial.print("  Temperature = ");
   Serial.print(celsius);
+  Serial.print(" Celsius, ");
+  Serial.print(fahrenheit);
+  Serial.println(" Fahrenheit");
+
+  drawTemp(celsius, addr[7] == 0x6B ? 1 : 0);
+}
 
 
-int tt = (raw * 6) + (raw / 4);
+
+void drawTemp(double temp, int tempId) {
+
+  double celsius = temp;
+  
+  
+  String t1 = tempToString(celsius);
+  char ssid[t1.length() + 1]; 
+  t1.toCharArray(ssid, t1.length() + 1);
+
+
+//int p = 0;
+//if (addr[7] == 0x6B) p++;
+
+int p = tempId;
+
+Tft.fillRectangle(0, 170 + (p*50), 120, 24 ,GRAY1);
+
+Tft.drawString(ssid,0,170 + (p*50),3,WHITE);
+
+  //Tft.setDisplayDirect(UP2DOWN);
+  //Tft.drawString(ssid,220 - (p*50),20,6,BLUE);
+
+
+  
+}
+
+
+String tempToString(double temp) {
+
+  double celsius = temp;
+  int tt = celsius*100;
+
   int Whole = (tt / 1) / 100;  // separate off the whole and fractional portions
   int Fract = (tt / 1) % 100;
 
@@ -135,24 +171,12 @@ String t = "";
   {
      t += "0";
   }
-  t += Fract;
-  
+  t += Fract;  
 
 
   String t1 = t; //"     ";
   //t1 += raw;
 
-  char ssid[t1.length() + 1]; 
-  t1.toCharArray(ssid, t1.length() + 1);
 
-int p = 0;
-if (addr[7] == 0x6B) p++;
-
-Tft.fillRectangle(0, 170 + (p*50), 120, 24 ,GRAY1);
-
-Tft.drawString(ssid,0,170 + (p*50),3,WHITE);
-
-  Serial.print(" Celsius, ");
-  Serial.print(fahrenheit);
-  Serial.println(" Fahrenheit");
+ return t; 
 }
