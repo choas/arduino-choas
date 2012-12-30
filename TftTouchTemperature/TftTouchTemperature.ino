@@ -58,7 +58,7 @@ OneWire  ds(A4);  // on pin A4
 // The 2.8" TFT Touch shield has 300 ohms across the X plate
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
-int timer = 15 * 60;
+int timer = 5 * 60;
 int timerStart;
 int timerStatus = 0;
 long timerStartTime;
@@ -103,7 +103,7 @@ void loopTimer() {
       else if(timer > 5 * 60) {
         timer += 30;
       } 
-      else if(timer > 1 * 60) {
+      else if(timer >= 1 * 60) {
         timer += 15;
       } 
       else {
@@ -124,7 +124,7 @@ void loopTimer() {
       else if(timer > 1 * 60) {
         timer -= 15;
       } 
-      else if(timer > 60) {
+      else if(timer > 5) {
         timer -= 5;
       }
       Serial.println(timer);
@@ -158,6 +158,10 @@ void loopTimer() {
 
   if (timerStatus == 2) {
     timer = timerStart - (millis() - timerStartTime) / 1000;
+    if (timer < 0) {
+      timer = 0;
+      timerStatus = 3;
+    }
   }
 
   if (timerOld != timer) {
@@ -165,11 +169,17 @@ void loopTimer() {
     char txtOld[tSold.length() + 1]; 
     tSold.toCharArray(txtOld, tSold.length() + 1);
 
-    Tft.drawString(txtOld, 55, 200, 4, BLACK);
-
     String tS = timerToString(timer);
     char txt[tS.length() + 1]; 
     tS.toCharArray(txt, tS.length() + 1); 
+
+    for(int i=0; i < tSold.length() && i < tS.length(); i++) {
+      if (txt[i] == txtOld[i]) {
+        txt[i] = txtOld[i] = ' ';
+      }
+    }
+    Tft.drawString(txtOld, 55, 200, 4, BLACK);
+
     Tft.drawString(txt, 55, 200, 4, (timerStatus > 1) ? WHITE : GRAY1);
   }
 }
@@ -314,13 +324,16 @@ void initDraw() {
   Tft.drawString("+", 20, 200, 3, WHITE);
   Tft.drawString("-", 20, 220, 3, WHITE);
 
-  Tft.drawString("15:00", 55, 200, 4, GRAY2);
+  String timerStr = timerToString(timer);
+  char timerChars[timerStr.length() + 1];
+  timerStr.toCharArray(timerChars, timerStr.length() + 1);
+  Tft.drawString(timerChars, 55, 200, 4, GRAY2);
 }
 
 
 void drawTemp(double temp, int tempId) {
   String tempString = tempToString(temp);
-  char tempTxt[tempString.length() + 1]; 
+  char tempTxt[tempString.length() + 1];
   tempString.toCharArray(tempTxt, tempString.length() + 1);
 
   int p = tempId;
