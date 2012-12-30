@@ -5,8 +5,6 @@
 #include <TouchScreen.h> 
 #include <TFT.h>
 
-
-
 // Copyright notice for TFT Touch Shield:
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -23,26 +21,24 @@
 //  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef SEEEDUINO
-#define YP A2   // must be an analog pin, use "An" notation!
-#define XM A1   // must be an analog pin, use "An" notation!
-#define YM 14   // can be a digital pin, this is A0
-#define XP 17   // can be a digital pin, this is A3 
+  #define YP A2   // must be an analog pin, use "An" notation!
+  #define XM A1   // must be an analog pin, use "An" notation!
+  #define YM 14   // can be a digital pin, this is A0
+  #define XP 17   // can be a digital pin, this is A3 
 #endif
 
 #ifdef MEGA
-#define YP A2   // must be an analog pin, use "An" notation!
-#define XM A1   // must be an analog pin, use "An" notation!
-#define YM 54   // can be a digital pin, this is A0
-#define XP 57   // can be a digital pin, this is A3 
+  #define YP A2   // must be an analog pin, use "An" notation!
+  #define XM A1   // must be an analog pin, use "An" notation!
+  #define YM 54   // can be a digital pin, this is A0
+  #define XP 57   // can be a digital pin, this is A3 
 #endif 
-
 
 #define TS_MINX 140
 #define TS_MAXX 900
 
 #define TS_MINY 120
 #define TS_MAXY 940
-
 
 
 // OneWire notice:
@@ -67,6 +63,11 @@ int timerStart;
 int timerStatus = 0;
 long timerStartTime;
 
+long timeTemp;
+boolean waitTemp = false;
+byte addr[8];
+byte type_s;
+
 void setup(void) {
   Serial.begin(9600);
 
@@ -82,17 +83,10 @@ void loop(void) {
 void loopTimer() {
   // a point object holds x y and z coordinates
   Point p = ts.getPoint();
-
-  if (p.z > ts.pressureThreshhold) {
-    // Serial.print("Raw X = "); Serial.print(p.x);
-    // Serial.print("\tRaw Y = "); Serial.print(p.y);
-    // Serial.print("\tPressure = "); Serial.println(p.z);
-  }
-
-  int timerOld = timer;
-
   p.x = map(p.x, TS_MINX, TS_MAXX, 240, 0);
   p.y = map(p.y, TS_MINY, TS_MAXY, 320, 0);
+
+  int timerOld = timer;
 
   // we have some minimum pressure we consider 'valid'
   // pressure of 0 means no pressing!
@@ -112,7 +106,7 @@ void loopTimer() {
       else if(timer > 1 * 60) {
         timer += 15;
       } 
-      else { //if(timer > 60) {
+      else {
         timer += 5;
       }
       timerStatus = 1;
@@ -196,37 +190,25 @@ String timerToString(int timer) {
   txt += seconds;
   return txt;
 }
-
-long timeTemp;
-boolean waitTemp = false;
-
-byte addr[8];
-
+  
 void loopTemperature() {
   if (!waitTemp) {
-    loopTemperature1(addr);
+    loopTemperature1(addr, type_s);
     waitTemp = true;
     timeTemp = millis();
   } 
   else {
     if (millis() - timeTemp > 1000) {
       //delay(1000);
-      loopTemperature2(addr);
+      loopTemperature2(addr, type_s);
       waitTemp = false;
     }
   }
 }
 
 
-//byte* 
-void 
-loopTemperature1(byte* addr) {
+void loopTemperature1(byte* addr, byte& type_s) {
   byte i;
-  //  byte present = 0;
-  byte type_s;
-  //  byte data[12];
-  //  byte addr[8];
-  //  float celsius, fahrenheit;
 
   if ( !ds.search(addr)) {
     Serial.println("No more addresses.");
@@ -270,21 +252,12 @@ loopTemperature1(byte* addr) {
   ds.reset();
   ds.select(addr);
   ds.write(0x44,1);         // start conversion, with parasite power on at the end
-
-  //  return addr;
 }
 
-
-
-//  delay(1000);     // maybe 750ms is enough, maybe not
-// we might do a ds.depower() here, but the reset will take care of it.
-
-void loopTemperature2(byte* addr) {
+void loopTemperature2(byte* addr, byte& type_s) {
   byte i;
   byte present = 0;
-  byte type_s;
   byte data[12];
-  //byte addr[8];
   float celsius, fahrenheit;
 
   present = ds.reset();
@@ -359,19 +332,15 @@ void drawTemp(double temp, int tempId) {
 
 
 String tempToString(double temp) {
-
   int temp100 = temp * 100;
-
   int Whole = temp100 / 100;  // separate off the whole and fractional portions
   int Fract = temp100 % 100;
 
   String t = "";
-
   if (Whole < 10)
   {
     t += " ";
   }
-
   if (temp < 0) // If its negative
   {
     t += "-";
@@ -379,7 +348,6 @@ String tempToString(double temp) {
   else {
     t += " ";
   }
-
   t += Whole;
   t += ".";
   if (Fract < 10)
