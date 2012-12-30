@@ -1,133 +1,158 @@
-// Paint application - Demonstate both TFT and Touch Screen
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License, or (at your option) any later version.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#include <OneWire.h>
+
 #include <stdint.h>
-#include <TouchScreen.h> 
+//#include <TouchScreen.h> 
 #include <TFT.h>
 
-#ifdef SEEEDUINO
-  #define YP A2   // must be an analog pin, use "An" notation!
-  #define XM A1   // must be an analog pin, use "An" notation!
-  #define YM 14   // can be a digital pin, this is A0
-  #define XP 17   // can be a digital pin, this is A3 
-#endif
 
-#ifdef MEGA
-  #define YP A2   // must be an analog pin, use "An" notation!
-  #define XM A1   // must be an analog pin, use "An" notation!
-  #define YM 54   // can be a digital pin, this is A0
-  #define XP 57   // can be a digital pin, this is A3 
-#endif 
+// OneWire DS18S20, DS18B20, DS1822 Temperature Example
+//
+// http://www.pjrc.com/teensy/td_libs_OneWire.html
+//
+// The DallasTemperature library can do all this work for you!
+// http://milesburton.com/Dallas_Temperature_Control_Library
 
-//Measured ADC values for (0,0) and (210-1,320-1)
-//TS_MINX corresponds to ADC value when X = 0
-//TS_MINY corresponds to ADC value when Y = 0
-//TS_MAXX corresponds to ADC value when X = 240 -1
-//TS_MAXY corresponds to ADC value when Y = 320 -1
+OneWire  ds(A4);  // on pin 10
 
-#define TS_MINX 140 
-#define TS_MAXX 900
-#define TS_MINY 120
-#define TS_MAXY 940
 
-int color = WHITE;  //Paint brush color
 
-// For better pressure precision, we need to know the resistance
-// between X+ and X- Use any multimeter to read it
-// The 2.8" TFT Touch shield has 300 ohms across the X plate
+void setup(void) {
+  Serial.begin(9600);
+  
+  Tft.init();  //init TFT library
 
-TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300); //init TouchScreen port pins
+  Tft.drawString("inside:",0,150,2,WHITE);
 
-void setup()
-{
-
-Tft.init();  //init TFT library
-pinMode(0,OUTPUT);
-//Draw the pallet
-Tft.fillRectangle(0,0,30,10,BLACK); 
-Tft.fillRectangle(30,0,30,10,RED);
-Tft.fillRectangle(60,0,30,10,GREEN);
-Tft.fillRectangle(90,0,30,10,BLUE);
-Tft.fillRectangle(120,0,30,10,CYAN);
-Tft.fillRectangle(150,0,30,10,YELLOW);
-Tft.fillRectangle(180,0,30,10,WHITE);
-Tft.fillRectangle(210,0,30,10,GRAY1);
-
+  Tft.drawString("outside:",0,200,2,WHITE);
+  
 }
 
-void loop()
-{
+void loop(void) {
+  byte i;
+  byte present = 0;
+  byte type_s;
+  byte data[12];
+  byte addr[8];
+  float celsius, fahrenheit;
   
-  // a point object holds x y and z coordinates.
-  Point p = ts.getPoint();
-
-  //map the ADC value read to into pixel co-ordinates
-
-  p.x = map(p.x, TS_MINX, TS_MAXX, 240, 0);
-  p.y = map(p.y, TS_MINY, TS_MAXY, 320, 0);
+  if ( !ds.search(addr)) {
+    Serial.println("No more addresses.");
+    Serial.println();
+    ds.reset_search();
+    delay(250);
+    return;
+  }
   
-  // we have some minimum pressure we consider 'valid'
-  // pressure of 0 means no pressing!
+  Serial.print("ROM =");
+  for( i = 0; i < 8; i++) {
+    Serial.write(' ');
+    Serial.print(addr[i], HEX);
+  }
 
-  if (p.z > ts.pressureThreshhold) {
-  
+  if (OneWire::crc8(addr, 7) != addr[7]) {
+      Serial.println("CRC is not valid!");
+      return;
+  }
+  Serial.println();
  
- // Detect  paint brush color change
- if(p.y < 30)
-  {
-    if(p.x >= 0 && p.x < 30)
-    {
-      color = BLACK;
-    }
-    if(p.x >= 30 && p.x < 60)
-    {
-      color = RED;
-      digitalWrite(0,HIGH);
-    }
-    if(p.x >= 60 && p.x < 90)
-    {
-      color = GREEN;
-    }
-    if(p.x >= 90 && p.x < 110)
-    {
-      color = BLUE;
-      digitalWrite(0,LOW);
-    }
-    if(p.x >= 120 && p.x < 150)
-    {
-      color = CYAN;
-    }
-    if(p.x >= 150 && p.x < 180)
-    {
-      color = YELLOW;
-    }
-    if(p.x >= 180 && p.x < 210)
-    {
-      color = WHITE;
-    }
-    if(p.x >= 210 && p.x < 240)
-    {
-      color = GRAY1;
-    }    
-  }
-  else    
-  {
-      Tft.fillCircle(p.x,p.y,2,color);
-  }
-     
- }
+  // the first ROM byte indicates which chip
+  switch (addr[0]) {
+    case 0x10:
+      Serial.println("  Chip = DS18S20");  // or old DS1820
+      type_s = 1;
+      break;
+    case 0x28:
+      Serial.println("  Chip = DS18B20");
+      type_s = 0;
+      break;
+    case 0x22:
+      Serial.println("  Chip = DS1822");
+      type_s = 0;
+      break;
+    default:
+      Serial.println("Device is not a DS18x20 family device.");
+      return;
+  } 
 
+  ds.reset();
+  ds.select(addr);
+  ds.write(0x44,1);         // start conversion, with parasite power on at the end
+  
+  delay(1000);     // maybe 750ms is enough, maybe not
+  // we might do a ds.depower() here, but the reset will take care of it.
+  
+  present = ds.reset();
+  ds.select(addr);    
+  ds.write(0xBE);         // Read Scratchpad
+
+  Serial.print("  Data = ");
+  Serial.print(present,HEX);
+  Serial.print(" ");
+  for ( i = 0; i < 9; i++) {           // we need 9 bytes
+    data[i] = ds.read();
+    Serial.print(data[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.print(" CRC=");
+  Serial.print(OneWire::crc8(data, 8), HEX);
+  Serial.println();
+
+  // convert the data to actual temperature
+
+  unsigned int raw = (data[1] << 8) | data[0];
+  if (type_s) {
+    raw = raw << 3; // 9 bit resolution default
+    if (data[7] == 0x10) {
+      // count remain gives full 12 bit resolution
+      raw = (raw & 0xFFF0) + 12 - data[6];
+    }
+  } else {
+    byte cfg = (data[4] & 0x60);
+    if (cfg == 0x00) raw = raw << 3;  // 9 bit resolution, 93.75 ms
+    else if (cfg == 0x20) raw = raw << 2; // 10 bit res, 187.5 ms
+    else if (cfg == 0x40) raw = raw << 1; // 11 bit res, 375 ms
+    // default is 12 bit resolution, 750 ms conversion time
+  }
+  celsius = (float)raw / 16.0;
+  fahrenheit = celsius * 1.8 + 32.0;
+  Serial.print("  Temperature = ");
+  Serial.print(celsius);
+
+
+int tt = (raw * 6) + (raw / 4);
+  int Whole = (tt / 1) / 100;  // separate off the whole and fractional portions
+  int Fract = (tt / 1) % 100;
+
+String t = "";
+
+  if (celsius < 0) // If its negative
+  {
+     t += "-";
+  }
+  t += Whole;
+  t += ".";
+  if (Fract < 10)
+  {
+     t += "0";
+  }
+  t += Fract;
+  
+
+
+  String t1 = t; //"     ";
+  //t1 += raw;
+
+  char ssid[t1.length() + 1]; 
+  t1.toCharArray(ssid, t1.length() + 1);
+
+int p = 0;
+if (addr[7] == 0x6B) p++;
+
+Tft.fillRectangle(0, 170 + (p*50), 120, 24 ,GRAY1);
+
+Tft.drawString(ssid,0,170 + (p*50),3,WHITE);
+
+  Serial.print(" Celsius, ");
+  Serial.print(fahrenheit);
+  Serial.println(" Fahrenheit");
 }
-
-
