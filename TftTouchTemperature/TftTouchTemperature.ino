@@ -91,8 +91,10 @@ void loopTimer() {
   // we have some minimum pressure we consider 'valid'
   // pressure of 0 means no pressing!
   if (p.z > ts.pressureThreshhold) {
-
+   
     if (p.x > 0 && p.x < 50 && p.y > 190 && p.y < 230) {
+      Tft.drawString("+", 20, 197, 3, BLUE);
+
       Serial.println("++++++");
       if (timer > 60 * 60) {
         // nothing
@@ -112,6 +114,8 @@ void loopTimer() {
       timerStatus = 1;
     }
     if (p.x > 0 && p.x < 50 && p.y > 230 && p.y < 270) {
+      Tft.drawString("-", 20, 219, 3, BLUE);
+
       Serial.println("------");
       Serial.println(timer);
 
@@ -179,8 +183,10 @@ void loopTimer() {
       }
     }
     Tft.drawString(txtOld, 55, 200, 4, BLACK);
-
-    Tft.drawString(txt, 55, 200, 4, (timerStatus > 1) ? WHITE : GRAY1);
+    Tft.drawString(txt, 55, 200, 4, GRAY1);
+  
+    Tft.drawString("+", 20, 197, 3, BLACK);
+    Tft.drawString("-", 20, 219, 3, BLACK);
   }
 }
 
@@ -209,7 +215,6 @@ void loopTemperature() {
   } 
   else {
     if (millis() - timeTemp > 1000) {
-      //delay(1000);
       loopTemperature2(addr, type_s);
       waitTemp = false;
     }
@@ -321,13 +326,18 @@ void initDraw() {
 
   Tft.drawString("Timer", 20, 170, 2, WHITE);  
 
-  Tft.drawString("+", 20, 200, 3, WHITE);
-  Tft.drawString("-", 20, 220, 3, WHITE);
+  Tft.fillRectangle(10, 197, 38, 19, WHITE);
+  Tft.drawRectangle(10, 197, 38, 19, GRAY1);
+  Tft.fillRectangle(10, 219, 38, 19, WHITE);
+  Tft.drawRectangle(10, 219, 38, 19, GRAY1);
+
+  Tft.drawString("+", 20, 197, 3, BLACK);
+  Tft.drawString("-", 20, 219, 3, BLACK);
 
   String timerStr = timerToString(timer);
   char timerChars[timerStr.length() + 1];
   timerStr.toCharArray(timerChars, timerStr.length() + 1);
-  Tft.drawString(timerChars, 55, 200, 4, GRAY2);
+  Tft.drawString(timerChars, 55, 200, 4, GRAY1);
 }
 
 
