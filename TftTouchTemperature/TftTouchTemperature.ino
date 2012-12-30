@@ -23,17 +23,17 @@
 //  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef SEEEDUINO
-  #define YP A2   // must be an analog pin, use "An" notation!
-  #define XM A1   // must be an analog pin, use "An" notation!
-  #define YM 14   // can be a digital pin, this is A0
-  #define XP 17   // can be a digital pin, this is A3 
+#define YP A2   // must be an analog pin, use "An" notation!
+#define XM A1   // must be an analog pin, use "An" notation!
+#define YM 14   // can be a digital pin, this is A0
+#define XP 17   // can be a digital pin, this is A3 
 #endif
 
 #ifdef MEGA
-  #define YP A2   // must be an analog pin, use "An" notation!
-  #define XM A1   // must be an analog pin, use "An" notation!
-  #define YM 54   // can be a digital pin, this is A0
-  #define XP 57   // can be a digital pin, this is A3 
+#define YP A2   // must be an analog pin, use "An" notation!
+#define XM A1   // must be an analog pin, use "An" notation!
+#define YM 54   // can be a digital pin, this is A0
+#define XP 57   // can be a digital pin, this is A3 
 #endif 
 
 
@@ -69,7 +69,7 @@ long timerStartTime;
 
 void setup(void) {
   Serial.begin(9600);
-  
+
   Tft.init();
   initDraw();
 }
@@ -88,27 +88,31 @@ void loopTimer() {
     // Serial.print("\tRaw Y = "); Serial.print(p.y);
     // Serial.print("\tPressure = "); Serial.println(p.z);
   }
-  
+
   int timerOld = timer;
- 
+
   p.x = map(p.x, TS_MINX, TS_MAXX, 240, 0);
   p.y = map(p.y, TS_MINY, TS_MAXY, 320, 0);
-  
+
   // we have some minimum pressure we consider 'valid'
   // pressure of 0 means no pressing!
   if (p.z > ts.pressureThreshhold) {
-    
+
     if (p.x > 0 && p.x < 50 && p.y > 190 && p.y < 230) {
       Serial.println("++++++");
       if (timer > 60 * 60) {
         // nothing
-      } else if (timer > 10 * 60) {
+      } 
+      else if (timer > 10 * 60) {
         timer += 60;
-      } else if(timer > 5 * 60) {
+      } 
+      else if(timer > 5 * 60) {
         timer += 30;
-      } else if(timer > 1 * 60) {
+      } 
+      else if(timer > 1 * 60) {
         timer += 15;
-      } else { //if(timer > 60) {
+      } 
+      else { //if(timer > 60) {
         timer += 5;
       }
       timerStatus = 1;
@@ -116,19 +120,22 @@ void loopTimer() {
     if (p.x > 0 && p.x < 50 && p.y > 230 && p.y < 270) {
       Serial.println("------");
       Serial.println(timer);
-      
+
       if (timer > 10 * 60) {
         timer -= 60;
-      } else if(timer > 5 * 60) {
+      } 
+      else if(timer > 5 * 60) {
         timer -= 30;
-      } else if(timer > 1 * 60) {
+      } 
+      else if(timer > 1 * 60) {
         timer -= 15;
-      } else if(timer > 60) {
+      } 
+      else if(timer > 60) {
         timer -= 5;
       }
       Serial.println(timer);
       Serial.println("------");
-      
+
       timerStatus = 1;
     }
     if (p.x > 120 && p.x < 200 && p.y > 190 && p.y < 270) {
@@ -138,19 +145,23 @@ void loopTimer() {
         timerStatus = 2;
         timerStartTime = millis();
         timerStart = timer;
-      } else {
+      } 
+      else {
         timerStatus = 1;
       }
       Serial.println(timerStatus);
       Serial.println("RRRRRRRRRR");
       delay(200);
     }
-    
-     Serial.print("X = "); Serial.print(p.x);
-     Serial.print("\tY = "); Serial.print(p.y);
-     Serial.print("\tPressure = "); Serial.println(p.z);
+
+    Serial.print("X = "); 
+    Serial.print(p.x);
+    Serial.print("\tY = "); 
+    Serial.print(p.y);
+    Serial.print("\tPressure = "); 
+    Serial.println(p.z);
   }
-  
+
   if (timerStatus == 2) {
     timer = timerStart - (millis() - timerStartTime) / 1000;
   }
@@ -172,7 +183,7 @@ void loopTimer() {
 String timerToString(int timer) {
   int minutes = (timer / 60);
   int seconds = (timer % 60);
-  
+
   String txt = "";
   if (minutes < 10) {
     txt += " ";
@@ -189,14 +200,15 @@ String timerToString(int timer) {
 long timeTemp;
 boolean waitTemp = false;
 
-  byte addr[8];
+byte addr[8];
 
 void loopTemperature() {
   if (!waitTemp) {
     loopTemperature1(addr);
     waitTemp = true;
     timeTemp = millis();
-  } else {
+  } 
+  else {
     if (millis() - timeTemp > 1000) {
       //delay(1000);
       loopTemperature2(addr);
@@ -210,20 +222,20 @@ void loopTemperature() {
 void 
 loopTemperature1(byte* addr) {
   byte i;
-//  byte present = 0;
+  //  byte present = 0;
   byte type_s;
-//  byte data[12];
-//  byte addr[8];
-//  float celsius, fahrenheit;
-  
+  //  byte data[12];
+  //  byte addr[8];
+  //  float celsius, fahrenheit;
+
   if ( !ds.search(addr)) {
     Serial.println("No more addresses.");
     Serial.println();
     ds.reset_search();
-//    delay(250);
+    //    delay(250);
     return;
   }
-  
+
   Serial.print("ROM =");
   for( i = 0; i < 8; i++) {
     Serial.write(' ');
@@ -231,41 +243,41 @@ loopTemperature1(byte* addr) {
   }
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
-      Serial.println("CRC is not valid!");
-      return;
+    Serial.println("CRC is not valid!");
+    return;
   }
   Serial.println();
- 
+
   // the first ROM byte indicates which chip
   switch (addr[0]) {
-    case 0x10:
-      Serial.println("  Chip = DS18S20");  // or old DS1820
-      type_s = 1;
-      break;
-    case 0x28:
-      Serial.println("  Chip = DS18B20");
-      type_s = 0;
-      break;
-    case 0x22:
-      Serial.println("  Chip = DS1822");
-      type_s = 0;
-      break;
-    default:
-      Serial.println("Device is not a DS18x20 family device.");
-      return;
+  case 0x10:
+    Serial.println("  Chip = DS18S20");  // or old DS1820
+    type_s = 1;
+    break;
+  case 0x28:
+    Serial.println("  Chip = DS18B20");
+    type_s = 0;
+    break;
+  case 0x22:
+    Serial.println("  Chip = DS1822");
+    type_s = 0;
+    break;
+  default:
+    Serial.println("Device is not a DS18x20 family device.");
+    return;
   } 
 
   ds.reset();
   ds.select(addr);
   ds.write(0x44,1);         // start conversion, with parasite power on at the end
 
-//  return addr;
+  //  return addr;
 }
 
 
-  
+
 //  delay(1000);     // maybe 750ms is enough, maybe not
-  // we might do a ds.depower() here, but the reset will take care of it.
+// we might do a ds.depower() here, but the reset will take care of it.
 
 void loopTemperature2(byte* addr) {
   byte i;
@@ -274,7 +286,7 @@ void loopTemperature2(byte* addr) {
   byte data[12];
   //byte addr[8];
   float celsius, fahrenheit;
-  
+
   present = ds.reset();
   ds.select(addr);    
   ds.write(0xBE);         // Read Scratchpad
@@ -300,7 +312,8 @@ void loopTemperature2(byte* addr) {
       // count remain gives full 12 bit resolution
       raw = (raw & 0xFFF0) + 12 - data[6];
     }
-  } else {
+  } 
+  else {
     byte cfg = (data[4] & 0x60);
     if (cfg == 0x00) raw = raw << 3;  // 9 bit resolution, 93.75 ms
     else if (cfg == 0x20) raw = raw << 2; // 10 bit res, 187.5 ms
@@ -361,8 +374,9 @@ String tempToString(double temp) {
 
   if (temp < 0) // If its negative
   {
-     t += "-";
-  } else {
+    t += "-";
+  } 
+  else {
     t += " ";
   }
 
@@ -370,9 +384,10 @@ String tempToString(double temp) {
   t += ".";
   if (Fract < 10)
   {
-     t += "0";
+    t += "0";
   }
   t += Fract;  
 
   return t; 
 }
+
