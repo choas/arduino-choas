@@ -62,6 +62,10 @@ OneWire  ds(A4);  // on pin A4
 // The 2.8" TFT Touch shield has 300 ohms across the X plate
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
+int timer = 15 * 60;
+int timerStart;
+int timerStatus = 0;
+long timerStartTime;
 
 void setup(void) {
   Serial.begin(9600);
@@ -71,22 +75,21 @@ void setup(void) {
 }
 
 void loop(void) {
-  
-
-  loopTouch();  
+  loopTimer();  
   //loopTemperature();
 }  
 
-void loopTouch() {
+void loopTimer() {
   // a point object holds x y and z coordinates
   Point p = ts.getPoint();
 
   if (p.z > ts.pressureThreshhold) {
-     Serial.print("Raw X = "); Serial.print(p.x);
-     Serial.print("\tRaw Y = "); Serial.print(p.y);
-     Serial.print("\tPressure = "); Serial.println(p.z);
+    // Serial.print("Raw X = "); Serial.print(p.x);
+    // Serial.print("\tRaw Y = "); Serial.print(p.y);
+    // Serial.print("\tPressure = "); Serial.println(p.z);
   }
   
+  int timerOld = timer;
  
   p.x = map(p.x, TS_MINX, TS_MAXX, 240, 0);
   p.y = map(p.y, TS_MINY, TS_MAXY, 320, 0);
@@ -94,10 +97,91 @@ void loopTouch() {
   // we have some minimum pressure we consider 'valid'
   // pressure of 0 means no pressing!
   if (p.z > ts.pressureThreshhold) {
+    
+    if (p.x > 0 && p.x < 50 && p.y > 190 && p.y < 230) {
+      Serial.println("++++++");
+      if (timer > 60 * 60) {
+        // nothing
+      } else if (timer > 10 * 60) {
+        timer += 60;
+      } else if(timer > 5 * 60) {
+        timer += 30;
+      } else if(timer > 1 * 60) {
+        timer += 15;
+      } else { //if(timer > 60) {
+        timer += 5;
+      }
+      timerStatus = 1;
+    }
+    if (p.x > 0 && p.x < 50 && p.y > 230 && p.y < 270) {
+      Serial.println("------");
+      Serial.println(timer);
+      
+      if (timer > 10 * 60) {
+        timer -= 60;
+      } else if(timer > 5 * 60) {
+        timer -= 30;
+      } else if(timer > 1 * 60) {
+        timer -= 15;
+      } else if(timer > 60) {
+        timer -= 5;
+      }
+      Serial.println(timer);
+      Serial.println("------");
+      
+      timerStatus = 1;
+    }
+    if (p.x > 120 && p.x < 200 && p.y > 190 && p.y < 270) {
+      Serial.println("RRRRRRRRRR");
+      if (timerStatus == 1) {
+        timerStatus = 2;
+        timerStartTime = millis();
+        timerStart = timer;
+      }
+      else {
+        timerStatus = 1;
+      }
+    }
+    
      Serial.print("X = "); Serial.print(p.x);
      Serial.print("\tY = "); Serial.print(p.y);
      Serial.print("\tPressure = "); Serial.println(p.z);
-  }  
+  }
+  
+  if (timerStatus == 2) {
+    timer = timerStart - (millis() - timerStartTime) / 1000;
+  }
+
+
+  if (timerOld != timer) {
+    String tSold = timerToString(timerOld);
+    char txtOld[tSold.length() + 1]; 
+    tSold.toCharArray(txtOld, tSold.length() + 1);
+
+    Tft.drawString(txtOld, 55, 200, 4, BLACK);
+
+    String tS = timerToString(timer);
+    char txt[tS.length() + 1]; 
+    tS.toCharArray(txt, tS.length() + 1); 
+    Tft.drawString(txt, 55, 200, 4, (timerStatus > 1) ? WHITE : GRAY1);
+  }
+}
+
+String timerToString(int timer) {
+  int minutes = (timer / 60);
+  int seconds = (timer % 60);
+  
+  String tSold = "";
+    if (minutes < 10) {
+      tSold += " ";
+    }
+    tSold += minutes;
+    tSold += ":";
+    if (seconds < 10) {
+      tSold += "0";
+    }
+    tSold += seconds;
+    return tSold;
 }
 
 void loopTemperature() {
