@@ -133,14 +133,17 @@ void loopTimer() {
     }
     if (p.x > 120 && p.x < 200 && p.y > 190 && p.y < 270) {
       Serial.println("RRRRRRRRRR");
-      if (timerStatus == 1) {
+      Serial.println(timerStatus);
+      if (timerStatus < 2) {
         timerStatus = 2;
         timerStartTime = millis();
         timerStart = timer;
-      }
-      else {
+      } else {
         timerStatus = 1;
       }
+      Serial.println(timerStatus);
+      Serial.println("RRRRRRRRRR");
+      delay(200);
     }
     
      Serial.print("X = "); Serial.print(p.x);
@@ -151,7 +154,6 @@ void loopTimer() {
   if (timerStatus == 2) {
     timer = timerStart - (millis() - timerStartTime) / 1000;
   }
-
 
   if (timerOld != timer) {
     String tSold = timerToString(timerOld);
@@ -171,17 +173,17 @@ String timerToString(int timer) {
   int minutes = (timer / 60);
   int seconds = (timer % 60);
   
-  String tSold = "";
-    if (minutes < 10) {
-      tSold += " ";
-    }
-    tSold += minutes;
-    tSold += ":";
-    if (seconds < 10) {
-      tSold += "0";
-    }
-    tSold += seconds;
-    return tSold;
+  String txt = "";
+  if (minutes < 10) {
+    txt += " ";
+  }
+  txt += minutes;
+  txt += ":";
+  if (seconds < 10) {
+    txt += "0";
+  }
+  txt += seconds;
+  return txt;
 }
 
 void loopTemperature() {
