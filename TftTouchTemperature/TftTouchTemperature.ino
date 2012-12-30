@@ -20,8 +20,7 @@ void setup(void) {
   Serial.begin(9600);
   
   Tft.init();
-  Tft.drawString("inside:",0,150,2,WHITE);
-  Tft.drawString("outside:",0,200,2,WHITE);
+  initDraw();
 }
 
 
@@ -123,48 +122,68 @@ void loop(void) {
 }
 
 
+// For better pressure precision, we need to know the resistance
+// between X+ and X- Use any multimeter to read it
+// The 2.8" TFT Touch shield has 300 ohms across the X plate
+TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
+
+
+
+void initDraw() {
+  Tft.drawString("Temperature", 20, 25, 2, WHITE);
+  Tft.drawString("inside:", 20, 50, 2, WHITE);
+  Tft.drawString("outside:", 20, 100, 2, WHITE);  
+
+  Tft.drawString("Timer", 20, 170, 2, WHITE);  
+
+  Tft.drawString("+", 20, 200, 3, WHITE);
+  Tft.drawString("-", 20, 220, 3, WHITE);
+
+  Tft.drawString("15:00", 55, 200, 4, GRAY2);
+}
+
 
 void drawTemp(double temp, int tempId) {
+  String tempString = tempToString(temp);
+  char tempTxt[tempString.length() + 1]; 
+  tempString.toCharArray(tempTxt, tempString.length() + 1);
 
-  double celsius = temp;
-  
-  
-  String t1 = tempToString(celsius);
-  char ssid[t1.length() + 1]; 
-  t1.toCharArray(ssid, t1.length() + 1);
+  int p = tempId;
+  Tft.fillRectangle(15, 70 + (p*50) - 1, 150, 23, GRAY1);
+  Tft.drawRectangle(15, 70 + (p*50) - 2, 150, 25, WHITE);
 
+  Tft.drawString(tempTxt, 20, 70 + (p*50), 3, WHITE);
 
-//int p = 0;
-//if (addr[7] == 0x6B) p++;
-
-int p = tempId;
-
-Tft.fillRectangle(0, 170 + (p*50), 120, 24 ,GRAY1);
-
-Tft.drawString(ssid,0,170 + (p*50),3,WHITE);
-
-  //Tft.setDisplayDirect(UP2DOWN);
-  //Tft.drawString(ssid,220 - (p*50),20,6,BLUE);
-
-
-  
+/*
+  Tft.setDisplayDirect(UP2DOWN);
+  Tft.fillRectangle(220 - 50 - (p*50), 20, 49, 270, 0x111111 * p);
+  Tft.drawString(ssid,220 - (p*50),20,6,BLUE);
+  Tft.setDisplayDirect(LEFT2RIGHT);
+*/
 }
 
 
 String tempToString(double temp) {
 
-  double celsius = temp;
-  int tt = celsius*100;
+  int temp100 = temp * 100;
 
-  int Whole = (tt / 1) / 100;  // separate off the whole and fractional portions
-  int Fract = (tt / 1) % 100;
+  int Whole = temp100 / 100;  // separate off the whole and fractional portions
+  int Fract = temp100 % 100;
 
-String t = "";
+  String t = "";
 
-  if (celsius < 0) // If its negative
+  if (Whole < 10)
+  {
+    t += " ";
+  }
+
+  if (temp < 0) // If its negative
   {
      t += "-";
+  } else {
+    t += " ";
   }
+
   t += Whole;
   t += ".";
   if (Fract < 10)
