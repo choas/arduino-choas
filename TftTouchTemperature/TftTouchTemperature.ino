@@ -80,6 +80,12 @@ void loop(void) {
   loopTemperature();
 }  
 
+char* s2c(String tSold) {
+  char txtOld[tSold.length() + 1]; 
+  tSold.toCharArray(txtOld, tSold.length() + 1);
+  return &txtOld[0];
+}
+
 void loopTimer() {
   // a point object holds x y and z coordinates
   Point p = ts.getPoint();
@@ -308,7 +314,12 @@ void loopTemperature2(byte* addr, byte& type_s) {
     else if (cfg == 0x40) raw = raw << 1; // 11 bit res, 375 ms
     // default is 12 bit resolution, 750 ms conversion time
   }
-  celsius = (float)raw / 16.0;
+  celsius = 1;
+  if(raw & 0x8000) {
+    raw = (raw ^ 0xffff) + 1;
+    celsius = -1;
+  }
+  celsius *= (float)raw / 16.0;
   fahrenheit = celsius * 1.8 + 32.0;
   Serial.print("  Temperature = ");
   Serial.print(celsius);
@@ -316,7 +327,7 @@ void loopTemperature2(byte* addr, byte& type_s) {
   Serial.print(fahrenheit);
   Serial.println(" Fahrenheit");
 
-  drawTemp(celsius, addr[7] == 0x6B ? 1 : 0);
+  drawTemp(celsius, addr[7] == 0x6B ? 1 : 0); // FIXME 0x6B is the id for the outside temperature sensor
 }
 
 void initDraw() {
@@ -355,7 +366,7 @@ void drawTemp(double temp, int tempId) {
 
 
 String tempToString(double temp) {
-  int temp100 = temp * 100;
+  int temp100 = abs(temp) * 100;
   int Whole = temp100 / 100;  // separate off the whole and fractional portions
   int Fract = temp100 % 100;
 
